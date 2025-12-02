@@ -10,25 +10,30 @@ if __name__ == '__main__':
     total = 0
 
     for i, line in enumerate(data):
+        if i == 242:
+            breakpoint()
         was_zero = cur == 0
         direction = line[0]
         count = int(line[1:].strip())
-        # print(f'{direction=} {count=}')
+
+        clicks = count // 100
+        count_abs = count % 100
 
         if direction == 'L':
-            new = cur - count
+            new = cur - count_abs
             cur = new % modulo
         elif direction == 'R':
-            new = cur + count
+            new = cur + count_abs
             cur = new % modulo
         else:
             assert False, 'Unreachable'
 
-        clicks = 0
+
+        # clicks = 0
         if new == 0:
-            clicks = 1
+            clicks += 1
         else:
-            clicks = abs(new // modulo)
+            clicks += abs(new // modulo)
 
         if was_zero and clicks > 0:
             clicks -= 1
