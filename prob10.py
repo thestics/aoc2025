@@ -1,3 +1,7 @@
+import scipy as sp
+import numpy as np
+
+
 s = "[##..#...#] (0,1,2,5,6,8) (3,4,5,7,8) (2,3,4) (1,2,4,5,6,7,8) (2,5) (0,5,7) (0,4,5,6,8) {45,33,46,21,45,82,44,43,60}"
 s1 = "[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}"
 
@@ -49,5 +53,55 @@ def solve_v1(path: str):
     return total
 
 
+def solve_row_v2(data: str):
+    init_state_raw, rest = data.split(" ", 1)
+    *buttons_raw, jolts_raw = rest.split(" ")
+    init_state = init_state_raw[1:-1]
+    buttons = [b[1:-1] for b in buttons_raw]
+    jolts = jolts_raw[1:-1]
+    
+    b = [int(x) for x in jolts.split(',')]
+    A = [[0 for i in range(len(buttons))] for j in range(len(b))]
+    
+    for i, but in enumerate(buttons):
+        idxs = [int(x) for x in but.split(',')]
+        for j in idxs:
+            A[j][i] = 1
+
+    A = np.array(A)
+    b = np.array(b)
+    
+    m, n = A.shape
+    
+    c = np.ones(n)
+    constraints = sp.optimize.LinearConstraint(A, lb=b, ub=b)
+    bounds = sp.optimize.Bounds(lb=np.zeros(n), ub=np.full(n, np.inf))
+    integrality = np.ones(n, dtype=int)
+
+    result = sp.optimize.milp(
+        c=c,
+        constraints=constraints,
+        bounds=bounds,
+        integrality=integrality
+    )
+
+    assert result.success, data
+    # if result.success:
+    return result.fun
+    
+
+def solve_v2(path: str):
+    with open(path) as f:
+        data = f.readlines()
+    total = 0
+    for i, line in enumerate(data):
+        cur = solve_row_v2(line.strip())
+        print(f'{i + 1}: {cur}')
+        total += cur
+    return total
+
+
+
 if __name__ == "__main__":
-    print(solve_v1("data/prob-10.txt"))
+    res = solve_v2("data/prob-10.txt")
+    print(f'{res=}')
