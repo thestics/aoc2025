@@ -44,18 +44,22 @@ def build_clusters(pts: list[Point], dist_list: list[tuple[TPointPairIDS, TDist]
 
     for round_no in range(total_rounds):
         ((l_idx, r_idx), dist) = deq.popleft()
+        print(f'{l_idx=} {r_idx=} {dist=}:', end=' ')
 
         # op1: both are not in a cluster
         if l_idx not in clst_map and r_idx not in clst_map:
+            print('BOTH_NEW')
             clst_map[l_idx] = idx
             clst_map[r_idx] = idx
             map_size[idx] = 2
             idx += 1
         # op2: one of two in a cluster
         elif l_idx in clst_map and r_idx not in clst_map:
+            print('RIGHT_NEW')
             clst_map[r_idx] = clst_map[l_idx]
             map_size[clst_map[l_idx]] += 1
         elif l_idx not in clst_map and r_idx in clst_map:
+            print('LEFT_NEW')
             clst_map[l_idx] = clst_map[r_idx]
             map_size[clst_map[r_idx]] += 1
         # op3.1: both are in the cluster (same)
@@ -63,6 +67,7 @@ def build_clusters(pts: list[Point], dist_list: list[tuple[TPointPairIDS, TDist]
 
         # op3.2: both are in the cluster (different)
         elif l_idx in clst_map and r_idx in clst_map and clst_map[l_idx] != clst_map[r_idx]:
+            print('MERGE')
             old_clst_idx = clst_map[r_idx]
             new_clst_idx = clst_map[l_idx]
 
@@ -75,20 +80,50 @@ def build_clusters(pts: list[Point], dist_list: list[tuple[TPointPairIDS, TDist]
             for k, v in clst_map.items():
                 if v == old_clst_idx:
                     clst_map[k] = new_clst_idx
+        else:
+            print('SKIP')
         # print(f"{round_no=}", map_size)
     return clst_map, None
 
 
-
-if __name__ == '__main__':
+def solve1():
     pts = read_input('data/prob-8.txt')
-    # rprint(pts)
     dists = build_dist_list(pts)
-    # print(dists)
-    # rprint(dists)
+    clusters, _ = build_clusters(pts, dists, rounds=1000)
+    grouped = {}
+    for k, v in clusters.items():
+        grouped[v] = grouped.get(v, 0) + 1
+
+    target = list(grouped.values())
+    max1 = max(target)
+    target.remove(max1)
+    max2 = max(target)
+    target.remove(max2)
+    max3 = max(target)
+    print(f'Top 3 cluster sizes: {max1, max2, max3}')
+    return max1 * max2 * max3
+
+
+def solve2():
+    pts = read_input('data/prob-8.txt')
+    dists = build_dist_list(pts)
     clusters, crucial_points = build_clusters(pts, dists, rounds=None)
     rprint(crucial_points)
     print(crucial_points[0].x * crucial_points[1].x)
+
+
+if __name__ == '__main__':
+    print(solve1())
+    # solve2()
+    # pts = read_input('data/prob-8.txt')
+    # # rprint(pts)
+    # dists = build_dist_list(pts)
+    # # print(dists)
+    # # rprint(dists)
+    # clusters, crucial_points = build_clusters(pts, dists, rounds=None)
+    # rprint(crucial_points)
+    # print(crucial_points[0].x * crucial_points[1].x)
+    
     # rprint(clusters)
     # grouped = {}
     # for k, v in clusters.items():
